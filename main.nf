@@ -31,7 +31,7 @@ samtools
 #==============================================
 */
 
-process samtoolsIndex {
+process samtoolsFaidx {
     publishDir params.resultsDir, mode: params.saveMode
     container 'quay.io/biocontainers/samtools:1.10--h2e538c0_3'
 
@@ -40,12 +40,12 @@ process samtoolsIndex {
     path refFasta from ch_refFasta
 
     output:
-    tuple file('*.fai') into ch_out_samtools
+    file('*.fai') into ch_out_samtools
 
     script:
 
     """
-    samtools index $params.refFasta
+    samtools faidx $params.refFasta
     """
 }
 
