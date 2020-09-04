@@ -33,7 +33,7 @@ samtools
 
 process samtoolsIndex {
     publishDir params.resultsDir, mode: params.saveMode
-    container 'quay.io/biocontainers/samtools:0.1.19--hfb9b9cc_8'
+    container 'quay.io/biocontainers/samtools:1.10--h2e538c0_3'
 
 
     input:
