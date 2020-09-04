@@ -23,7 +23,7 @@ Channel.value("$workflow.launchDir/$params.refFasta")
         .set { ch_refFasta }
 
 Channel.fromFilePairs(params.filePattern)
-        .into { ch_in_samtools }
+        .set { ch_in_samtools }
 
 /*
 #==============================================
