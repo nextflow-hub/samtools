@@ -27,7 +27,8 @@ params.saveMode = 'copy'
 
 params.refFasta = "NC000962_3.fasta"
 params.readsFilePattern = "./*_{R1,R2}.fastq.gz"
-params.bamFilePattern = "${params.bwaMemResultsDir}/*bam"
+params.bamFilePattern = ".bam"
+params.sortedBamFilePattern = ".sort.bam"
 
 
 Channel.value("$workflow.launchDir/$params.refFasta")
@@ -36,10 +37,10 @@ Channel.value("$workflow.launchDir/$params.refFasta")
 Channel.fromFilePairs(params.readsFilePattern)
         .set { ch_in_samtools }
 
-Channel.fromPath(params.bamFilePattern)
+Channel.fromPath("${params.bwaMemResultsDir}/*${params.bamFilePattern}")
         .set { ch_in_samtoolsSort }
 
-Channel.fromPath(params.bamFilePattern)
+Channel.fromPath("${params.samtoolsSortResultsDir}/*${params.sortedBamFilePattern}")
         .set { ch_in_samtoolsIndex }
 
 
@@ -79,11 +80,10 @@ process samtoolsSort {
     params.sort
 
     input:
-    tuple file(bamRead) from ch_in_samtoolsSort
+    file(bamRead) from ch_in_samtoolsSort
 
-    //TODO take this pattern as a parameter
     output:
-    file('*.sort.bam') into ch_out_samtoolsSort
+    file("*${params.sortedBamFilePattern}") into ch_out_samtoolsSort
 
     script:
 
@@ -106,14 +106,15 @@ process samtoolsIndex {
 
     input:
     path refFasta from ch_refFasta
+    file(sortedBam) from ch_in_samtoolsIndex
 
     output:
-    file('*.fai') into ch_out_samtoolsIndex
+    file("*.bai") into ch_out_samtoolsIndex
 
     script:
 
     """
-    samtools index $params.refFasta
+    samtools index ${sortedBam}
     """
 }
 
@@ -122,3 +123,4 @@ process samtoolsIndex {
 # extra
 #==============================================
 */
+
