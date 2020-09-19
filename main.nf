@@ -19,9 +19,10 @@ params.faidx = false
 params.sort = false
 
 params.bwaMemResultsDir = 'results/bwa/mem'
-params.samtoolsFaidxResultsDir = 'results/samtools/faidx'
-params.samtoolsSortResultsDir = 'results/samtools/sort'
-params.samtoolsIndexResultsDir = 'results/samtools/index'
+
+params.faidxResultsDir = 'results/samtools/faidx'
+params.sortResultsDir = 'results/samtools/sort'
+params.indexResultsDir = 'results/samtools/index'
 
 params.saveMode = 'copy'
 
@@ -38,10 +39,10 @@ Channel.fromFilePairs(params.readsFilePattern)
         .set { ch_in_samtools }
 
 Channel.fromPath("${params.bwaMemResultsDir}/*${params.bamFilePattern}")
-        .set { ch_in_samtoolsSort }
+        .set { ch_in_sort }
 
-Channel.fromPath("${params.samtoolsSortResultsDir}/*${params.sortedBamFilePattern}")
-        .set { ch_in_samtoolsIndex }
+Channel.fromPath("${params.sortResultsDir}/*${params.sortedBamFilePattern}")
+        .set { ch_in_index }
 
 
 /*
@@ -50,8 +51,8 @@ samtools
 #==============================================
 */
 
-process samtoolsFaidx {
-    publishDir params.samtoolsFaidxResultsDir, mode: params.saveMode
+process faidx {
+    publishDir params.faidxResultsDir, mode: params.saveMode
     container 'quay.io/biocontainers/samtools:1.10--h2e538c0_3'
 
     when:
@@ -61,7 +62,7 @@ process samtoolsFaidx {
     path refFasta from ch_refFasta
 
     output:
-    file('*.fai') into ch_out_samtoolsFaidx
+    file('*.fai') into ch_out_faidx
 
     script:
 
@@ -72,18 +73,18 @@ process samtoolsFaidx {
 
 
 
-process samtoolsSort {
-    publishDir params.samtoolsSortResultsDir, mode: params.saveMode
+process sort {
+    publishDir params.sortResultsDir, mode: params.saveMode
     container 'quay.io/biocontainers/samtools:1.10--h2e538c0_3'
 
     when:
     params.sort
 
     input:
-    file(bamRead) from ch_in_samtoolsSort
+    file(bamRead) from ch_in_sort
 
     output:
-    file("*${params.sortedBamFilePattern}") into ch_out_samtoolsSort
+    file("*${params.sortedBamFilePattern}") into ch_out_sort
 
     script:
 
@@ -97,8 +98,8 @@ process samtoolsSort {
 
 
 
-process samtoolsIndex {
-    publishDir params.samtoolsIndexResultsDir, mode: params.saveMode
+process index {
+    publishDir params.indexResultsDir, mode: params.saveMode
     container 'quay.io/biocontainers/samtools:1.10--h2e538c0_3'
 
     when:
@@ -106,10 +107,10 @@ process samtoolsIndex {
 
     input:
     path refFasta from ch_refFasta
-    file(sortedBam) from ch_in_samtoolsIndex
+    file(sortedBam) from ch_in_index
 
     output:
-    file("*.bai") into ch_out_samtoolsIndex
+    file("*.bai") into ch_out_index
 
     script:
 
