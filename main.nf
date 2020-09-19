@@ -17,12 +17,15 @@ params
 params.index = false
 params.faidx = false
 params.sort = false
+params.depth = false
 
+params.gatkMarkDuplicatesSparkResultsDir = 'results/gatk/markDuplicatesSpark'
 params.bwaMemResultsDir = 'results/bwa/mem'
 
 params.faidxResultsDir = 'results/samtools/faidx'
 params.sortResultsDir = 'results/samtools/sort'
 params.indexResultsDir = 'results/samtools/index'
+params.depthResultsDir = 'results/samtools/depth'
 
 params.saveMode = 'copy'
 
@@ -41,13 +44,13 @@ Channel.fromFilePairs(params.readsFilePattern)
 Channel.fromPath("${params.bwaMemResultsDir}/*${params.bamFilePattern}")
         .set { ch_in_sort }
 
-Channel.fromPath("${params.sortResultsDir}/*${params.sortedBamFilePattern}")
-        .set { ch_in_index }
+Channel.fromPath("${params.gatkMarkDuplicatesSparkResultsDir}/*${params.sortedBamFilePattern}")
+        .into { ch_in_index; ch_in_depth }
 
 
 /*
 #==============================================
-samtools
+faidx
 #==============================================
 */
 
@@ -72,6 +75,11 @@ process faidx {
 }
 
 
+/*
+#==============================================
+sort
+#==============================================
+*/
 
 process sort {
     publishDir params.sortResultsDir, mode: params.saveMode
@@ -95,7 +103,11 @@ process sort {
 }
 
 
-
+/*
+#==============================================
+index
+#==============================================
+*/
 
 
 process index {
@@ -118,6 +130,37 @@ process index {
     samtools index ${sortedBam}
     """
 }
+
+
+/*
+#==============================================
+depth
+#==============================================
+*/
+
+
+process depth {
+    publishDir params.depthResultsDir, mode: params.saveMode
+    container 'quay.io/biocontainers/samtools:1.10--h2e538c0_3'
+
+    when:
+    params.depth
+
+    input:
+    path refFasta from ch_refFasta
+    file(sortedBam) from ch_in_depth
+
+    output:
+    file("*.txt") into ch_out_depth
+
+    script:
+    genomeName = sortedBam.toString().split("\\.")[0]
+
+    """
+    samtools depth ${sortedBam} > ${genomeName}_depth_out.txt
+    """
+}
+
 
 /*
 #==============================================
