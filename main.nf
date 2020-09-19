@@ -18,7 +18,7 @@ params.index = false
 params.faidx = false
 params.sort = false
 
-params.bwaMemResultsDir = 'results/bwa/mem'
+params.gatkMarkDuplicatesSparkResultsDir = 'results/gatk/markDuplicatesSpark'
 
 params.faidxResultsDir = 'results/samtools/faidx'
 params.sortResultsDir = 'results/samtools/sort'
@@ -41,13 +41,13 @@ Channel.fromFilePairs(params.readsFilePattern)
 Channel.fromPath("${params.bwaMemResultsDir}/*${params.bamFilePattern}")
         .set { ch_in_sort }
 
-Channel.fromPath("${params.sortResultsDir}/*${params.sortedBamFilePattern}")
+Channel.fromPath("${params.gatkMarkDuplicatesSparkResultsDir}/*${params.sortedBamFilePattern}")
         .set { ch_in_index }
 
 
 /*
 #==============================================
-samtools
+faidx
 #==============================================
 */
 
@@ -72,6 +72,11 @@ process faidx {
 }
 
 
+/*
+#==============================================
+sort
+#==============================================
+*/
 
 process sort {
     publishDir params.sortResultsDir, mode: params.saveMode
@@ -96,6 +101,11 @@ process sort {
 
 
 
+/*
+#==============================================
+index
+#==============================================
+*/
 
 
 process index {
