@@ -154,7 +154,7 @@ process depth {
     file("*.txt") into ch_out_depth
 
     script:
-    genomeName = bamRead.toString().split("\\.")[0]
+    genomeName = sortedBam.toString().split("\\.")[0]
 
     """
     samtools depth ${sortedBam} > ${genomeName}_depth_out.txt
